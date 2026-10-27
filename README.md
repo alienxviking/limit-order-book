@@ -19,11 +19,31 @@ analysis are in [REPORT.md](REPORT.md).
 | `workload.hpp` | the random op generator (fixed seed) and the loop that plays it on a book |
 | `verify.hpp` | `--verify`: edge cases, a brute force reference book, random workloads |
 | `bench.cpp` | `main` and the benchmark (`--impl A/B/C`) |
-| `Makefile` | `make` builds `bench`, `make verify` runs the correctness test |
+| `Makefile` | `make` builds `bench`, `make test` (or `make verify`) runs the correctness test, `make asan` runs it under asan + ubsan |
 | `run_perf.sh` | builds, runs verify, the benchmark and perf for A/B/C, writes `results/` |
 | `per_run_counters.sh` | perf counters for one run of the book only (see REPORT section 3) |
+| `Dockerfile` | builds and runs the correctness test in a clean Ubuntu, no compiler needed |
 | `perf.Dockerfile` | the Ubuntu image we used for g++ and perf |
 | `results/` | the raw output of our final run, everything in the report comes from here |
+
+## Quick start
+
+With Docker, nothing else needed:
+
+```
+docker build -t limit-order-book .
+docker run --rm limit-order-book
+```
+
+With g++ or clang++ and make:
+
+```
+make test
+```
+
+Both build the books and run the correctness test (below). It exits 1 if any book disagrees with
+the reference. CI (`.github/workflows/ci.yml`) runs it on every push and pull request with g++
+and clang++ (warnings as errors), again under asan + ubsan, and through the Dockerfile.
 
 ## Build
 
@@ -92,7 +112,8 @@ All implementations produce identical results.
 ```
 
 We also built it with `-Wall -Wextra -Wpedantic` and with `-fsanitize=address,undefined` (g++ and
-clang++) and ran `--verify` with those builds: no warnings, no errors.
+clang++) and ran `--verify` with those builds: no warnings, no errors. `make asan` does the
+sanitizer build and run, and CI repeats both on every push.
 
 ## Benchmark
 
