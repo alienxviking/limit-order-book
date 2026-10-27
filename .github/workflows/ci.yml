@@ -1,0 +1,40 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # warnings are errors here, and --verify exits 1 if any book disagrees with the reference
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cxx: [g++, clang++]
+    steps:
+      - uses: actions/checkout@v5
+      - name: build
+        run: make bench CXX=${{ matrix.cxx }} CXXFLAGS="-std=c++17 -O2 -Wall -Wextra -Wpedantic -Werror"
+      - name: verify
+        run: ./bench --verify
+
+  # same test under asan + ubsan
+  sanitizers:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cxx: [g++, clang++]
+    steps:
+      - uses: actions/checkout@v5
+      - name: build + verify
+        run: make asan CXX=${{ matrix.cxx }}
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -t limit-order-book .
+      - run: docker run --rm limit-order-book

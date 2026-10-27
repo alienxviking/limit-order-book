@@ -1,0 +1,7 @@
+# only the github actions get updates, the code itself has no dependencies outside the standard library
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
